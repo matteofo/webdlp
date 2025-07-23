@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>wow</title>
+    <style>
+        * {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: #171717;
+            color: white;
+        }
+
+        input {
+            border: 1px solid white;
+            border-radius: 5px;
+
+            padding: 10px;
+            padding-top: 5px;
+            padding-bottom: 5px;
+
+            margin-bottom: 10px;
+        }
+
+        #go {
+            background-color: rgb(96, 135, 96);
+            cursor: pointer;
+        }
+
+        fieldset {
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <form method="get" action="./process">
+        <fieldset>
+            <legend>cool stuff</legend> 
+            <label for="id">id</label><br>
+            <input required type="text" name="id" size="11"><br>
+            <label for="mode">video</label>
+            <input type="checkbox" name="mode" checked><br>
+            <input id="go" type="submit" value="go">
+        </fieldset>
+    </form>
+</body>
+</html>
