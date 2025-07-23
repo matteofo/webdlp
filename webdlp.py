@@ -18,30 +18,36 @@ def audio():
     video = request.args.get("id")
     mode = request.args.get("mode")
 
+    dpath = f"{video}"
+
+    mime = "video/mp4"
+    if not mode:
+        mime = "audio/mpeg"
+        dpath += ".mp3"
+
     ctx = {
-        "outtmpl": "-",
-        'logtostderr': True
+        'outtmpl': dpath,
+        'logtostderr': True,
+        'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
     }
 
     if not mode:
         ctx['extract_audio'] = True
         ctx['format'] = 'bestaudio'
 
-    buffer = io.BytesIO()
-    with redirect_stdout(buffer), YoutubeDL(ctx) as yt:
+    with YoutubeDL(ctx) as yt:
         yt.download(video)
 
-    dpath = f"{video}.mp4"
-    mime = "video/mp4"
-
-    if not mode:
-        dpath = f"{video}.mp3"
-        mime = "audio/mpeg"
-
-    Path(dpath).write_bytes(buffer.getvalue())
+    if mode == "on":
+        dpath += ".mp4"
+    
+    f = open(dpath, 'rb')
+    contents = f.read()
+    f.close()
+    
     os.remove(dpath)
     
-    return Response(buffer.getvalue(), mimetype=mime)
+    return Response(contents, mimetype=mime)
 
 if __name__ == "__main__":
-    app.run(debug=False, port=5106, host="0.0.0.0")
+    app.run(debug=True, port=5106, host="0.0.0.0")
