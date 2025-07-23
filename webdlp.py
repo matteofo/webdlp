@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from flask import Flask, request, Response
 from yt_dlp import YoutubeDL
 from contextlib import redirect_stdout
@@ -42,4 +44,4 @@ def audio():
     return Response(buffer.getvalue(), mimetype=mime)
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5106)
+    app.run(debug=False, port=5106, host="0.0.0.0")
