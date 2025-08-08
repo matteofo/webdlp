@@ -38,7 +38,7 @@ def audio():
 
     if not mode:
         ctx['extract_audio'] = True
-        ctx['format'] = 'bestaudio[ext=m4a]'
+        ctx['format'] = 'bestaudio'
 
     with YoutubeDL(ctx) as yt:
         yt.download(video)
