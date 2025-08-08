@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
 
-from flask import Flask, request, Response
+from flask import *
 from yt_dlp import YoutubeDL
 from contextlib import redirect_stdout
 from pathlib import Path
-import io, os
+import io, os, git
 
 app = Flask(__name__)
 
+def get_commit() -> str:
+    repo = git.Repo("./")
+    return repo.head.object.hexsha[:7]
+
 @app.route("/")
 def root():
-    with open("./epic.html") as f:
-        return f.read()
+    return render_template("index.html", commit=get_commit())
 
 @app.route("/process")
 def audio():
