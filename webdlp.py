@@ -22,8 +22,8 @@ def audio():
 
     mime = "video/mp4"
     if not mode:
-        mime = "audio/mpeg"
-        dpath += ".mp3"
+        mime = "audio/m4a"
+        dpath += ".m4a"
 
     ctx = {
         'outtmpl': dpath,
@@ -45,7 +45,7 @@ def audio():
     contents = f.read()
     f.close()
     
-    os.remove(dpath)
+    #os.remove(dpath)
     
     return Response(contents, mimetype=mime)
 
