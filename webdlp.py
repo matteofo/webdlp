@@ -22,7 +22,7 @@ def audio():
 
     mime = "video/mp4"
     if not mode:
-        mime = "audio/m4a"
+        mime = "audio/mp4"
         dpath += ".m4a"
 
     ctx = {
