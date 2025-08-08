@@ -45,7 +45,7 @@ def audio():
     contents = f.read()
     f.close()
     
-    #os.remove(dpath)
+    os.remove(dpath)
     
     return Response(contents, mimetype=mime)
 
