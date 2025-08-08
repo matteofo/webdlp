@@ -20,11 +20,13 @@ def audio():
 
     dpath = f"{video}"
 
+    # check selected mode (video/audio)
     mime = "video/mp4"
     if not mode:
         mime = "audio/mp4"
         dpath += ".m4a"
 
+    # set yt-dlp opts
     ctx = {
         'outtmpl': dpath,
         'logtostderr': True,
@@ -33,7 +35,7 @@ def audio():
 
     if not mode:
         ctx['extract_audio'] = True
-        ctx['format'] = 'bestaudio'
+        ctx['format'] = 'bestaudio[ext=m4a]'
 
     with YoutubeDL(ctx) as yt:
         yt.download(video)
@@ -41,13 +43,18 @@ def audio():
     if mode == "on":
         dpath += ".mp4"
     
+    # read file to ram
     f = open(dpath, 'rb')
     contents = f.read()
     f.close()
     
+    # delete from fs
     os.remove(dpath)
     
-    return Response(contents, mimetype=mime)
+    headers = {
+        "Content disposition": "attachment; filename=" + dpath
+    }
+    return Response(contents, mimetype=mime, content_type=mime, headers=headers)
 
 if __name__ == "__main__":
     app.run(debug=True, port=5106, host="0.0.0.0")
