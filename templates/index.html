@@ -33,11 +33,13 @@
     </style>
 </head>
 <body>
-    <p><b>webdlp commit {{ commit }}</b></p>
-    <p><i>requests might take a while to process&excl; please be patient &colon;&rpar;</i></p>
     <form method="get" action="./process">
         <fieldset>
-            <legend>cool stuff</legend> 
+            <legend><b>webdlp commit {{ commit }}</b></legend> 
+            <p>
+                requests might take a while to process&excl; please be patient &colon;&rpar;<br>
+                <small><i>i&apos;ll add a progress bar eventually... maybe</i></small>
+            </p>
             <label for="id">id</label><br>
             <input required type="text" name="id" size="11"><br>
             <label for="mode">video</label>
