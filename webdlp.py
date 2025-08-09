@@ -2,9 +2,7 @@
 
 from flask import *
 from yt_dlp import YoutubeDL
-from contextlib import redirect_stdout
-from pathlib import Path
-import io, os, git
+import os, git
 
 app = Flask(__name__)
 
@@ -17,47 +15,60 @@ def root():
     return render_template("index.html", commit=get_commit())
 
 @app.route("/process")
-def audio():
+def process():
     video = request.args.get("id")
-    mode = request.args.get("mode")
+    enable_video = request.args.get("video")
 
-    dpath = f"{video}"
+    # video id must be passed
+    if not video:
+        return Response("Invalid arguments", status=400)
 
-    # check selected mode (video/audio)
-    mime = "video/mp4"
-    if not mode:
-        mime = "audio/mp4"
-        dpath += ".m4a"
+    dl_path = f"{video}"
 
-    # set yt-dlp opts
+    # yt-dlp opts
     ctx = {
-        'outtmpl': dpath,
         'logtostderr': True,
-        'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
     }
 
-    if not mode:
+    # check selected if video is enbled
+    if not enable_video or enable_video == "off":
+        # set yt-dlp to download only the audio track
+        # audio still seems to be encoded as mp4 (m4a) most of the time
+        mime = "audio/mp4"
+        dl_path += ".m4a"
+
         ctx['extract_audio'] = True
         ctx['format'] = 'bestaudio'
+    elif enable_video == "on":
+        # set yt-dlp to download the best video format available
+        mime = "video/mp4"
+        dl_path += ".mp4"
+        
+        ctx['format'] = 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best'
+    else:
+        # invalid argument passed
+        return Response("Invalid arguments", status=400)
+    
+    # set download path
+    ctx['outtmpl'] = dl_path
 
     with YoutubeDL(ctx) as yt:
         yt.download(video)
+    
+        # read file to ram
+        f = open(dl_path, 'rb')
+        contents = f.read()
+        f.close()
+        
+        # delete from fs
+        os.remove(dl_path)
+        
+        # tell browser this is an attachment
+        headers = {
+            "Content-Disposition": "attachment; filename=" + dl_path
+        }
 
-    if mode == "on":
-        dpath += ".mp4"
-    
-    # read file to ram
-    f = open(dpath, 'rb')
-    contents = f.read()
-    f.close()
-    
-    # delete from fs
-    os.remove(dpath)
-    
-    headers = {
-        "Content-Disposition": "attachment; filename=" + dpath
-    }
-    return Response(contents, mimetype=mime, content_type=mime, headers=headers)
+        return Response(contents, mimetype=mime, content_type=mime, headers=headers)
 
 if __name__ == "__main__":
     app.run(debug=True, port=5106, host="0.0.0.0")
