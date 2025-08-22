@@ -15,8 +15,13 @@ def get_commit_msg() -> str:
     repo = git.Repo("./")
     return repo.head.object.message
 
+def self_update():
+    repo = git.Repo("./")
+    repo.remotes.origin.pull()
+
 @app.route("/")
 def root():
+    self_update()
     return render_template("index.html", commit=get_commit(), commit_msg=get_commit_msg())
 
 @app.route("/process")
