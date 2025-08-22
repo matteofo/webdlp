@@ -3,6 +3,7 @@
 from flask import *
 from yt_dlp import YoutubeDL
 import os, git
+from urllib.parse import urlparse, unquote, parse_qs
 
 app = Flask(__name__)
 
@@ -10,18 +11,32 @@ def get_commit() -> str:
     repo = git.Repo("./")
     return repo.head.object.hexsha[:7]
 
+def get_commit_msg() -> str:
+    repo = git.Repo("./")
+    return repo.head.object.message
+
 @app.route("/")
 def root():
-    return render_template("index.html", commit=get_commit())
+    return render_template("index.html", commit=get_commit(), commit_msg=get_commit_msg())
 
 @app.route("/process")
 def process():
-    video = request.args.get("id")
+    video = unquote(request.args.get("id"))
     enable_video = request.args.get("video")
 
     # video id must be passed
     if not video:
         return Response("Invalid arguments", status=400)
+    
+    # check if input is url or just an id
+    if video.startswith("http"):
+        video_url = urlparse(video)
+        query = parse_qs(video_url.query)
+
+        if "v" not in query:
+            return Response("Invalid arguments", status=400)
+        else:
+            video = query["v"][0]
 
     dl_path = f"{video}"
 

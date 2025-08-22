@@ -35,14 +35,14 @@
 <body>
     <form method="get" action="./process">
         <fieldset>
-            <legend><b><a href="https://github.com/matteofo/webdlp/commit/{{ commit }}">webdlp commit {{ commit }}</a></b></legend> 
+            <legend><b><a href="https://github.com/matteofo/webdlp/commit/{{ commit }}">webdlp commit {{ commit }}: {{ commit_msg }}</a></b></legend> 
             <p>
                 requests might take a while to process&excl; please be patient &colon;&rpar;<br>
                 <small><i>i&apos;ll add a progress bar eventually... maybe</i></small>
             </p>
-            <label for="id">id</label><br>
-            <input required type="text" name="id" size="11"><br>
-            <label for="video">video</label>
+            <label for="id">id or url</label><br>
+            <input required type="text" name="id"><br>
+            <label for="video">include video</label>
             <input type="checkbox" name="video" checked><br>
             <input id="go" type="submit" value="go">
         </fieldset>
