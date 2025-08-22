@@ -47,7 +47,7 @@ def process():
 
     # yt-dlp opts
     ctx = {
-        'logtostderr': True,
+        'logtostderr': True
     }
 
     # check selected if video is enbled
