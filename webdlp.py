@@ -64,7 +64,7 @@ def process():
         mime = "video/mp4"
         dl_path += ".mp4"
         
-        ctx['format'] = 'bestvideo+bestaudio/best[ext=mp4]/best'
+        ctx['format'] = 'bestvideo+bestaudio'
     else:
         # invalid argument passed
         return Response("Invalid arguments", status=400)
