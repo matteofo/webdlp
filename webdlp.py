@@ -64,6 +64,8 @@ def status():
         
         os.remove(j.path)
         
+        jobs.remove(j)
+        
         return Response(contents, mimetype=j.mime, content_type=j.mime, headers={
             "Content-Disposition": "attachment; filename=" + j.path
         })
