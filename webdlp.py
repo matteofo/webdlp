@@ -6,19 +6,31 @@ import os, git, uuid, threading
 from urllib.parse import urlparse, unquote, parse_qs
 
 class DownloadJob():
-    def __init__(self, thread: threading.Thread, vid: str, path: str, mime: str):
-        self.thread = thread
+    def __init__(self, yt, vid: str, path: str, mime: str, transcode: bool):
+        self.thread = None
+        self.yt = yt
         self.vid = vid
         self.path = path
         self.mime = mime
+        self.transcode = transcode
         self.id = uuid.uuid4()
+
+    def start(self):
+        self.thread = threading.Thread(target=download_thread, args=[self.yt, self.vid, self.path, self.mime, self.transcode])
+        self.thread.start()
 
 app = Flask(__name__)
 jobs: list[DownloadJob] = []
 
-def download_thread(yt, video, dl_path):
+def download_thread(yt, video, dl_path: str, mime: str, transcode: bool):
     print(f"WORKER: {yt} {video} {dl_path}")
     yt.download(video)
+
+    if mime == "video/mp4" and transcode:
+        print("TRANSCODING!")
+        os.system(f"ffmpeg -i {dl_path} {dl_path.replace(".mp4", ".h264.mp4")}")
+    else:
+        print("not transcoding.")
     
 def get_commit() -> str:
     repo = git.Repo("./")
@@ -58,22 +70,31 @@ def status():
         return resp
     else:
         # read file to ram
-        f = open(j.path, 'rb')
+        path = j.path
+        is_transcoded = j.transcode and j.mime == "video/mp4"
+
+        if is_transcoded:
+            path = path.replace(".mp4", ".h264.mp4")
+
+        f = open(path, 'rb')
         contents = f.read()
         f.close()
         
         os.remove(j.path)
+        if is_transcoded:
+            os.remove(path)
         
         jobs.remove(j)
         
         return Response(contents, mimetype=j.mime, content_type=j.mime, headers={
-            "Content-Disposition": "attachment; filename=" + j.path
+            "Content-Disposition": "attachment; filename=" + path
         })
 
 @app.route("/process")
 def process():
     video = unquote(request.args.get("id"))
     enable_video = request.args.get("video")
+    transcode = request.args.get("transcode")
 
     # video id must be passed
     if not video:
@@ -114,18 +135,25 @@ def process():
     else:
         # invalid argument passed
         return Response("Invalid arguments", status=400)
-    
+
+    do_transcode = None
+    if not transcode or transcode == "off":
+        do_transcode = False
+    elif transcode == "on":
+        do_transcode = True
+    else:
+        # invalid argument passed
+        return Response("Invalid arguments", status=400)
+
     # set download path
     ctx['outtmpl'] = dl_path
 
-    with YoutubeDL(ctx) as yt:      
-        dl_thread = threading.Thread(target=download_thread, args=[yt, video, dl_path])
-        job = DownloadJob(dl_thread, video, dl_path, mime)
+    with YoutubeDL(ctx) as yt:
+        job = DownloadJob(yt, video, dl_path, mime, do_transcode)
         jobs.append(job)
-        
-        dl_thread.start()
-        
-        return Response(status=308, headers={
+        job.start()
+                
+        return Response(status=307, headers={
             "Location": "./status?id=" + job.id.hex
         })
 
