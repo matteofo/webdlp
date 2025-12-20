@@ -28,7 +28,8 @@ def download_thread(yt, video, dl_path: str, mime: str, transcode: bool):
 
     if mime == "video/mp4" and transcode:
         print("TRANSCODING!")
-        os.system(f"ffmpeg -i {dl_path} {dl_path.replace(".mp4", ".h264.mp4")}")
+        replaced = dl_path.replace(".mp4", ".h264.mp4")
+        os.system(f"ffmpeg -i {dl_path} {replaced}")
     else:
         print("not transcoding.")
     
