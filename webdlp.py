@@ -26,9 +26,11 @@ def download_thread(yt, video, dl_path: str, mime: str, transcode: bool):
     print(f"WORKER: {yt} {video} {dl_path}")
     yt.download(video)
 
-    if mime == "video/mp4" and transcode:
+    if transcode:
         print("TRANSCODING!")
-        replaced = dl_path.replace(".mp4", ".h264.mp4")
+        replaced = dl_path.replace(".mp4", ".tx.mp4")
+        replaced = dl_path.replace(".mp3", ".tx.mp3")
+        replaced = dl_path.replace(".m4a", ".tx.m4a")
         os.system(f"ffmpeg -i {dl_path} {replaced}")
     else:
         print("not transcoding.")
@@ -72,17 +74,17 @@ def status():
     else:
         # read file to ram
         path = j.path
-        is_transcoded = j.transcode and j.mime == "video/mp4"
-
-        if is_transcoded:
-            path = path.replace(".mp4", ".h264.mp4")
+        if j.transcode:
+            path = path.replace(".mp4", ".tx.mp4")
+            path = path.replace(".mp3", ".tx.mp3")
+            path = path.replace(".m4a", ".tx.m4a")
 
         f = open(path, 'rb')
         contents = f.read()
         f.close()
         
         os.remove(j.path)
-        if is_transcoded:
+        if j.transcode:
             os.remove(path)
         
         jobs.remove(j)
