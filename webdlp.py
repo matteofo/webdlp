@@ -16,21 +16,22 @@ class DownloadJob():
         self.id = uuid.uuid4()
 
     def start(self):
+        info = self.yt.extract_info(self.vid, download=False)
+        self.path = self.yt.prepare_filename(info)
+        
         self.thread = threading.Thread(target=download_thread, args=[self.yt, self.vid, self.path, self.mime, self.transcode])
         self.thread.start()
 
 app = Flask(__name__)
 jobs: list[DownloadJob] = []
 
-def download_thread(yt, video, dl_path: str, mime: str, transcode: bool):
+def download_thread(yt: YoutubeDL, video, dl_path: str, mime: str, transcode: bool):
     print(f"WORKER: {yt} {video} {dl_path}")
     yt.download(video)
 
     if transcode:
         print("TRANSCODING!")
-        replaced = dl_path.replace(".mp4", ".tx.mp4")
-        replaced = dl_path.replace(".mp3", ".tx.mp3")
-        replaced = dl_path.replace(".m4a", ".tx.m4a")
+        replaced = dl_path.replace(".", ".tx.")
         os.system(f"ffmpeg -i {dl_path} {replaced}")
     else:
         print("not transcoding.")
@@ -75,9 +76,8 @@ def status():
         # read file to ram
         path = j.path
         if j.transcode:
-            path = path.replace(".mp4", ".tx.mp4")
-            path = path.replace(".mp3", ".tx.mp3")
-            path = path.replace(".m4a", ".tx.m4a")
+            path = path.replace(".", ".tx.")
+            print("PATH : " + path)
 
         f = open(path, 'rb')
         contents = f.read()
@@ -114,7 +114,7 @@ def process():
             video = query["v"][0]
 
     dl_path = f"{video}"
-
+    
     # yt-dlp opts
     ctx = {
         'logtostderr': True
@@ -125,14 +125,12 @@ def process():
         # set yt-dlp to download only the audio track
         # audio still seems to be encoded as mp4 (m4a) most of the time
         mime = "audio/mp4"
-        dl_path += ".m4a"
 
         ctx['extract_audio'] = True
         ctx['format'] = 'bestaudio'
     elif enable_video == "on":
         # set yt-dlp to download the best video format available
         mime = "video/mp4"
-        dl_path += ".mp4"
         
         ctx['format'] = 'bestvideo+bestaudio'
     else:
@@ -149,10 +147,10 @@ def process():
         return Response("Invalid arguments", status=400)
 
     # set download path
-    ctx['outtmpl'] = dl_path
+    ctx['outtmpl'] = dl_path + ".%(ext)s"
 
     with YoutubeDL(ctx) as yt:
-        job = DownloadJob(yt, video, dl_path, mime, do_transcode)
+        job = DownloadJob(yt, video, ctx['outtmpl'], mime, do_transcode)
         jobs.append(job)
         job.start()
                 
